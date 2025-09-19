@@ -16,12 +16,12 @@ export default function Features() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-[#b0cece] relative overflow-hidden">
       {/* Background circles */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gray-700/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gray-800/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gray-700/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#0c2543]/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#0e6994]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#6c9d87]/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       <motion.div
@@ -31,8 +31,8 @@ export default function Features() {
         className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center"
       >
         {/* Hero */}
-        <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6">AES Platform Features</h1>
-        <p className="text-gray-300 text-lg md:text-xl mb-12 max-w-3xl mx-auto">
+        <h1 className="text-5xl md:text-6xl font-extrabold text-[#0c2543] mb-6">AES Platform Features</h1>
+        <p className="text-[#0e6994] text-lg md:text-xl mb-12 max-w-3xl mx-auto">
           Explore the cutting-edge features of AES Platform designed to enhance your learning and assessment experience.
         </p>
 
@@ -42,13 +42,13 @@ export default function Features() {
             <motion.div
               key={index}
               whileHover={{ scale: 1.05 }}
-              className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-md transition"
+              className="bg-white/90 backdrop-blur-md rounded-2xl p-8 border border-[#0c2543]/20 shadow-md transition"
             >
-              <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl mb-4 mx-auto">
+              <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-r from-[#0e6994] to-[#7035fd] rounded-2xl mb-4 mx-auto">
                 <feature.icon className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-              <p className="text-gray-300 text-sm">{feature.desc}</p>
+              <h3 className="text-xl font-bold text-[#0c2543] mb-2">{feature.title}</h3>
+              <p className="text-[#6c5043] text-sm">{feature.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -57,7 +57,7 @@ export default function Features() {
         <div className="mt-16">
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-10 rounded-2xl font-semibold shadow-2xl cursor-pointer"
+            className="inline-block bg-gradient-to-r from-[#0e6994] to-[#7035fd] text-white py-4 px-10 rounded-2xl font-semibold shadow-2xl cursor-pointer"
             onClick={() => navigate("/signup")}
           >
             Get Started Today

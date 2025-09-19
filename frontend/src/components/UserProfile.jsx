@@ -78,19 +78,19 @@ export default function UserProfile({ isOpen, onClose }) {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-16 right-4 w-80 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden"
+            className="fixed top-16 right-4 w-80 bg-white border border-[#b0cece] rounded-xl shadow-2xl z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="p-6 border-b border-gray-700">
+            <div className="p-6 border-b border-[#b0cece]">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#0e6994] to-[#7035fd] rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-lg">
                     {user?.name?.charAt(0) || "U"}
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold">{user?.name || "User"}</h3>
-                  <p className="text-gray-400 text-sm">{user?.email || "user@example.com"}</p>
+                  <h3 className="text-[#0c2543] font-semibold">{user?.name || "User"}</h3>
+                  <p className="text-[#0e6994] text-sm">{user?.email || "user@example.com"}</p>
                 </div>
               </div>
             </div>
@@ -100,9 +100,9 @@ export default function UserProfile({ isOpen, onClose }) {
               {menuItems.map((item, index) => (
                 <motion.button
                   key={index}
-                  whileHover={{ backgroundColor: "rgba(59, 130, 246, 0.1)" }}
+                  whileHover={{ backgroundColor: "rgba(14, 105, 148, 0.1)" }}
                   onClick={item.action}
-                  className="w-full flex items-center gap-3 px-6 py-3 text-left text-gray-300 hover:text-white transition"
+                  className="w-full flex items-center gap-3 px-6 py-3 text-left text-[#0c2543] hover:text-[#0e6994] transition"
                 >
                   <item.icon className="w-5 h-5" />
                   <span>{item.label}</span>
@@ -111,11 +111,11 @@ export default function UserProfile({ isOpen, onClose }) {
             </div>
 
             {/* Logout Section */}
-            <div className="border-t border-gray-700 p-2">
+            <div className="border-t border-[#b0cece] p-2">
               <motion.button
-                whileHover={{ backgroundColor: "rgba(239, 68, 68, 0.1)" }}
+                whileHover={{ backgroundColor: "rgba(225, 136, 145, 0.1)" }}
                 onClick={() => setShowLogoutConfirm(true)}
-                className="w-full flex items-center gap-3 px-6 py-3 text-left text-red-400 hover:text-red-300 transition"
+                className="w-full flex items-center gap-3 px-6 py-3 text-left text-[#e18891] hover:text-[#d44719] transition"
               >
                 <LogOut className="w-5 h-5" />
                 <span>Logout</span>
@@ -136,22 +136,22 @@ export default function UserProfile({ isOpen, onClose }) {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm mx-4"
+                  className="bg-white p-6 rounded-xl border border-[#b0cece] max-w-sm mx-4"
                 >
-                  <h3 className="text-white font-semibold mb-2">Confirm Logout</h3>
-                  <p className="text-gray-300 text-sm mb-4">
+                  <h3 className="text-[#0c2543] font-semibold mb-2">Confirm Logout</h3>
+                  <p className="text-[#0e6994] text-sm mb-4">
                     Are you sure you want to logout? You'll need to login again to access your account.
                   </p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowLogoutConfirm(false)}
-                      className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition"
+                      className="flex-1 bg-[#b0cece] text-[#0c2543] py-2 px-4 rounded-lg hover:bg-[#0e6994] hover:text-white transition"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition"
+                      className="flex-1 bg-[#e18891] text-white py-2 px-4 rounded-lg hover:bg-[#d44719] transition"
                     >
                       Logout
                     </button>
@@ -174,15 +174,15 @@ export default function UserProfile({ isOpen, onClose }) {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm mx-4 w-full"
+                  className="bg-white p-6 rounded-xl border border-[#b0cece] max-w-sm mx-4 w-full"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-semibold flex items-center gap-2"><Edit3 className="w-4 h-4"/> Edit Profile</h3>
-                    <button onClick={() => setShowEditProfile(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
+                    <h3 className="text-[#0c2543] font-semibold flex items-center gap-2"><Edit3 className="w-4 h-4"/> Edit Profile</h3>
+                    <button onClick={() => setShowEditProfile(false)} className="text-[#0e6994] hover:text-[#0c2543]"><X className="w-5 h-5"/></button>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-gray-400 text-sm mb-1">Branch</label>
+                      <label className="block text-[#0e6994] text-sm mb-1">Branch</label>
                       {(() => {
                         const engineeringBranches = [
                           "Computer Science Engineering",
@@ -214,7 +214,7 @@ export default function UserProfile({ isOpen, onClose }) {
                           <select
                             value={profileForm.branch}
                             onChange={(e) => setProfileForm({ ...profileForm, branch: e.target.value })}
-                            className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 outline-none"
+                            className="w-full bg-[#b0cece]/30 text-[#0c2543] px-3 py-2 rounded-lg border border-[#b0cece] focus:border-[#0e6994] outline-none"
                           >
                             <option value="">Select your branch</option>
                             {engineeringBranches.map((b) => (
@@ -225,20 +225,20 @@ export default function UserProfile({ isOpen, onClose }) {
                       })()}
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-sm mb-1">Phone</label>
-                      <input value={profileForm.phone} onChange={(e)=>setProfileForm({...profileForm, phone: e.target.value})} className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 outline-none"/>
+                      <label className="block text-[#0e6994] text-sm mb-1">Phone</label>
+                      <input value={profileForm.phone} onChange={(e)=>setProfileForm({...profileForm, phone: e.target.value})} className="w-full bg-[#b0cece]/30 text-[#0c2543] px-3 py-2 rounded-lg border border-[#b0cece] focus:border-[#0e6994] outline-none"/>
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-sm mb-1">Roll No</label>
-                      <input value={profileForm.roll} onChange={(e)=>setProfileForm({...profileForm, roll: e.target.value})} className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 outline-none"/>
+                      <label className="block text-[#0e6994] text-sm mb-1">Roll No</label>
+                      <input value={profileForm.roll} onChange={(e)=>setProfileForm({...profileForm, roll: e.target.value})} className="w-full bg-[#b0cece]/30 text-[#0c2543] px-3 py-2 rounded-lg border border-[#b0cece] focus:border-[#0e6994] outline-none"/>
                     </div>
                   </div>
                   <div className="flex gap-3 mt-4">
-                    <button onClick={()=>setShowEditProfile(false)} className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition">Cancel</button>
+                    <button onClick={()=>setShowEditProfile(false)} className="flex-1 bg-[#b0cece] text-[#0c2543] py-2 px-4 rounded-lg hover:bg-[#0e6994] hover:text-white transition">Cancel</button>
                     <button onClick={async ()=>{ 
                       try { await profileAPI.update(profileForm); } catch { /* fallback local */ localStorage.setItem('profile', JSON.stringify(profileForm)); }
                       setShowEditProfile(false); onClose(); 
-                    }} className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">Save</button>
+                    }} className="flex-1 bg-[#0e6994] text-white py-2 px-4 rounded-lg hover:bg-[#0c2543] transition">Save</button>
                   </div>
                 </motion.div>
               </motion.div>
