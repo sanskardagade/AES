@@ -33,19 +33,54 @@ export default function TestConsole() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h1 className="text-xl font-bold">Test Console</h1>
-        <Timer duration={300} onTimeUp={submitTest} />
-      </div>
-      <QuestionCard question={questions[index]} onAnswer={handleAnswer} />
-      <div className="mt-4 flex justify-between">
-        <button disabled={index===0} onClick={()=>setIndex(i=>i-1)} className="px-3 py-1 bg-gray-300 rounded">Prev</button>
-        {index === questions.length-1 ? (
-          <button onClick={submitTest} className="px-3 py-1 bg-green-600 text-white rounded">Submit</button>
-        ) : (
-          <button onClick={()=>setIndex(i=>i+1)} className="px-3 py-1 bg-blue-600 text-white rounded">Next</button>
-        )}
+    <div className="min-h-screen bg-[#b0cece] p-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[#0c2543]">Test Console</h1>
+          <Timer duration={300} onTimeUp={submitTest} />
+        </div>
+        
+        <div className="mb-4">
+          <div className="w-full bg-[#b0cece] rounded-full h-2.5">
+            <div 
+              className="bg-[#0e6994] h-2.5 rounded-full transition-all duration-300"
+              style={{ width: `${((index + 1) / questions.length) * 100}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between mt-2">
+            <span className="text-sm text-[#0e6994]">
+              Question {index + 1} of {questions.length}
+            </span>
+          </div>
+        </div>
+        
+        <QuestionCard question={questions[index]} onAnswer={handleAnswer} />
+        
+        <div className="mt-6 flex justify-between">
+          <button 
+            disabled={index===0} 
+            onClick={()=>setIndex(i=>i-1)} 
+            className="px-4 py-2 bg-[#b0cece] text-[#0c2543] rounded-lg hover:bg-[#0e6994] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          {index === questions.length-1 ? (
+            <button 
+              onClick={submitTest} 
+              className="px-4 py-2 bg-[#6c9d87] text-white rounded-lg hover:bg-[#0c2543] transition"
+            >
+              Submit Test
+            </button>
+          ) : (
+            <button 
+              onClick={()=>setIndex(i=>i+1)} 
+              className="px-4 py-2 bg-[#0e6994] text-white rounded-lg hover:bg-[#0c2543] transition"
+            >
+              Next Question
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

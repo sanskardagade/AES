@@ -31,11 +31,11 @@ export default function Careers() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-      {/* Background subtle circles */}
+    <div className="min-h-screen bg-[#0c2543] relative overflow-hidden">
+      {/* Background subtle circles with palette colors */}
       <div className="absolute inset-0">
-        <div className="absolute top-16 left-16 w-72 h-72 bg-gray-700/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-16 right-16 w-96 h-96 bg-gray-800/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-16 left-16 w-72 h-72 bg-[#6c9d87]/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-16 right-16 w-96 h-96 bg-[#b0cece]/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       <motion.div
@@ -45,11 +45,13 @@ export default function Careers() {
         className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center"
       >
         {/* Hero Section */}
-        <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4">
+        <h1 className="text-5xl md:text-6xl font-extrabold text-[#ffffff] mb-4">
           Join Our Team
         </h1>
-        <p className="text-gray-300 mb-12 text-lg md:text-xl max-w-3xl mx-auto">
-          AES Platform is looking for passionate individuals to help shape the future of learning. Explore our open positions and become part of an innovative team.
+        <p className="text-[#b0cece] mb-12 text-lg md:text-xl max-w-3xl mx-auto">
+          AES Platform is looking for passionate individuals to help shape the
+          future of learning. Explore our open positions and become part of an
+          innovative team.
         </p>
 
         {/* Job Positions */}
@@ -58,22 +60,24 @@ export default function Careers() {
             <motion.div
               key={index}
               whileHover={{ scale: 1.05 }}
-              className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg flex flex-col justify-between"
+              className="bg-[#0e6994]/90 backdrop-blur-md rounded-2xl p-6 border border-[#b0cece]/20 shadow-lg flex flex-col justify-between"
             >
               <div className="flex items-center justify-start mb-4 space-x-4">
-                <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+                <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-[#6c9d87] to-[#7035fd] rounded-xl">
                   <position.icon className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <h3 className="text-xl font-bold text-white">{position.title}</h3>
-                  <p className="text-gray-400 text-sm">{position.location}</p>
+                  <h3 className="text-xl font-bold text-white">
+                    {position.title}
+                  </h3>
+                  <p className="text-[#e18891] text-sm">{position.location}</p>
                 </div>
               </div>
-              <p className="text-gray-300 mb-4 text-sm">{position.desc}</p>
+              <p className="text-[#b0cece] mb-4 text-sm">{position.desc}</p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
-                className="mt-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-6 rounded-xl font-semibold shadow-md hover:opacity-90 transition"
-                onClick={() => window.location.href = "/contact"}
+                className="mt-auto bg-gradient-to-r from-[#e1ab30] to-[#d44719] text-white py-2 px-6 rounded-xl font-semibold shadow-md hover:opacity-90 transition"
+                onClick={() => (window.location.href = "/contact")}
               >
                 Apply Now
               </motion.button>

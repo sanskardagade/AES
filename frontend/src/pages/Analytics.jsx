@@ -35,7 +35,7 @@ export default function Analytics() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      // Mock analytics data - in real app, this would come from API
+      // Mock analytics data
       const mockAnalytics = {
         totalTests: 12,
         averageScore: 87,
@@ -65,29 +65,29 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#b0cece] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-white">Loading analytics...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0e6994] mx-auto mb-4"></div>
+          <p className="text-[#0c2543]">Loading analytics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[#b0cece]">
       {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700">
+      <div className="bg-[#0c2543] shadow">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/dashboard")}
-              className="text-gray-400 hover:text-white transition"
+              className="text-[#ffffff] hover:text-[#e1ab30] transition"
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <BarChart3 className="w-6 h-6" />
+            <h1 className="text-2xl font-bold text-[#ffffff] flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-[#e1ab30]" />
               Analytics Dashboard
             </h1>
           </div>
@@ -100,14 +100,14 @@ export default function Analytics() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800 rounded-xl p-6 border border-gray-700"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Tests</p>
-                <p className="text-3xl font-bold text-white">{analytics.totalTests}</p>
+                <p className="text-gray-600 text-sm">Total Tests</p>
+                <p className="text-3xl font-bold text-[#0c2543]">{analytics.totalTests}</p>
               </div>
-              <BookOpen className="w-8 h-8 text-blue-400" />
+              <BookOpen className="w-8 h-8 text-[#0e6994]" />
             </div>
           </motion.div>
 
@@ -115,14 +115,14 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gray-800 rounded-xl p-6 border border-gray-700"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Average Score</p>
-                <p className="text-3xl font-bold text-green-400">{analytics.averageScore}%</p>
+                <p className="text-gray-600 text-sm">Average Score</p>
+                <p className="text-3xl font-bold text-[#6c9d87]">{analytics.averageScore}%</p>
               </div>
-              <Target className="w-8 h-8 text-green-400" />
+              <Target className="w-8 h-8 text-[#6c9d87]" />
             </div>
           </motion.div>
 
@@ -130,14 +130,14 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gray-800 rounded-xl p-6 border border-gray-700"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Time Spent</p>
-                <p className="text-3xl font-bold text-yellow-400">{analytics.totalTimeSpent}m</p>
+                <p className="text-gray-600 text-sm">Time Spent</p>
+                <p className="text-3xl font-bold text-[#e1ab30]">{analytics.totalTimeSpent}m</p>
               </div>
-              <Clock className="w-8 h-8 text-yellow-400" />
+              <Clock className="w-8 h-8 text-[#e1ab30]" />
             </div>
           </motion.div>
 
@@ -145,14 +145,14 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gray-800 rounded-xl p-6 border border-gray-700"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Best Subject</p>
-                <p className="text-3xl font-bold text-purple-400">{analytics.bestSubject}</p>
+                <p className="text-gray-600 text-sm">Best Subject</p>
+                <p className="text-2xl font-bold text-[#7035fd]">{analytics.bestSubject}</p>
               </div>
-              <Award className="w-8 h-8 text-purple-400" />
+              <Award className="w-8 h-8 text-[#7035fd]" />
             </div>
           </motion.div>
         </div>
@@ -163,20 +163,23 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-gray-800 rounded-xl p-6 border border-gray-700"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
           >
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
+            <h3 className="text-xl font-bold text-[#0c2543] mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#0e6994]" />
               Recent Performance
             </h3>
             <div className="h-64 flex items-end gap-2">
               {analytics.recentScores.map((score, index) => (
                 <div key={index} className="flex-1 flex flex-col items-center">
                   <div
-                    className="bg-gradient-to-t from-blue-600 to-purple-600 rounded-t w-full transition-all duration-500"
-                    style={{ height: `${(score / 100) * 200}px` }}
+                    className="rounded-t w-full transition-all duration-500"
+                    style={{
+                      height: `${(score / 100) * 200}px`,
+                      background: "linear-gradient(to top, #0e6994, #7035fd)"
+                    }}
                   ></div>
-                  <span className="text-gray-400 text-xs mt-2">{score}%</span>
+                  <span className="text-gray-600 text-xs mt-2">{score}%</span>
                 </div>
               ))}
             </div>
@@ -187,22 +190,22 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-gray-800 rounded-xl p-6 border border-gray-700"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
           >
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <PieChart className="w-5 h-5" />
+            <h3 className="text-xl font-bold text-[#0c2543] mb-6 flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-[#d44719]" />
               Subject Performance
             </h3>
             <div className="space-y-4">
               {analytics.subjectBreakdown.map((subject, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
-                    <span className="text-white">{subject.subject}</span>
+                    <div className="w-4 h-4 rounded-full" style={{ background: "linear-gradient(to right, #0e6994, #7035fd)" }}></div>
+                    <span className="text-[#0c2543]">{subject.subject}</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-white font-semibold">{subject.score}%</div>
-                    <div className="text-gray-400 text-sm">{subject.tests} tests</div>
+                    <div className="text-[#0c2543] font-semibold">{subject.score}%</div>
+                    <div className="text-gray-500 text-sm">{subject.tests} tests</div>
                   </div>
                 </div>
               ))}
@@ -214,17 +217,17 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="bg-gray-800 rounded-xl p-6 border border-gray-700 lg:col-span-2"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece] lg:col-span-2"
           >
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
+            <h3 className="text-xl font-bold text-[#0c2543] mb-6 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-[#6c5043]" />
               Monthly Progress
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {analytics.monthlyProgress.map((month, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-2xl font-bold text-white mb-2">{month.avgScore}%</div>
-                  <div className="text-gray-400 text-sm mb-1">{month.month}</div>
+                  <div className="text-2xl font-bold text-[#d44719] mb-2">{month.avgScore}%</div>
+                  <div className="text-[#0c2543] text-sm mb-1">{month.month}</div>
                   <div className="text-gray-500 text-xs">{month.tests} tests</div>
                 </div>
               ))}

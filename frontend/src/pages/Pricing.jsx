@@ -9,27 +9,41 @@ export default function Pricing() {
     {
       title: "Basic",
       price: "$9/mo",
-      features: ["Access to basic assessments", "Limited analytics", "Community support"],
+      features: [
+        "Access to basic assessments",
+        "Limited analytics",
+        "Community support",
+      ],
     },
     {
       title: "Pro",
       price: "$29/mo",
-      features: ["All Basic features", "Advanced analytics", "Priority support", "Personalized learning paths"],
+      features: [
+        "All Basic features",
+        "Advanced analytics",
+        "Priority support",
+        "Personalized learning paths",
+      ],
     },
     {
       title: "Enterprise",
       price: "Contact Us",
-      features: ["All Pro features", "Team management", "Dedicated account manager", "Custom solutions"],
+      features: [
+        "All Pro features",
+        "Team management",
+        "Dedicated account manager",
+        "Custom solutions",
+      ],
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0c2543] relative overflow-hidden">
       {/* Background circles */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gray-700/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gray-800/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gray-700/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#0e6994]/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#7035fd]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#6c9d87]/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       <motion.div
@@ -39,8 +53,10 @@ export default function Pricing() {
         className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center"
       >
         {/* Hero */}
-        <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6">Pricing Plans</h1>
-        <p className="text-gray-300 text-lg md:text-xl mb-12 max-w-3xl mx-auto">
+        <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6">
+          Pricing Plans
+        </h1>
+        <p className="text-[#b0cece] text-lg md:text-xl mb-12 max-w-3xl mx-auto">
           Choose a plan that fits your learning goals and unlock the full potential of AES Platform.
         </p>
 
@@ -50,13 +66,18 @@ export default function Pricing() {
             <motion.div
               key={index}
               whileHover={{ scale: 1.05 }}
-              className={`bg-gray-800/80 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-md transition ${
-                index === 1 ? "border-blue-500/40 shadow-2xl" : ""
-              }`}
+              className={`bg-[#0e6994]/10 backdrop-blur-md rounded-2xl p-8 border shadow-md transition
+                ${
+                  index === 1
+                    ? "border-[#7035fd]/50 shadow-2xl bg-[#0e6994]/20"
+                    : "border-white/10"
+                }`}
             >
               <h3 className="text-2xl font-bold text-white mb-4">{plan.title}</h3>
-              <p className="text-3xl font-extrabold text-white mb-6">{plan.price}</p>
-              <ul className="text-gray-300 mb-6 space-y-2">
+              <p className="text-3xl font-extrabold text-[#e1ab30] mb-6">
+                {plan.price}
+              </p>
+              <ul className="text-[#b0cece] mb-6 space-y-2">
                 {plan.features.map((feature, i) => (
                   <li key={i}>• {feature}</li>
                 ))}
@@ -65,7 +86,7 @@ export default function Pricing() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/signup")}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold shadow-2xl hover:opacity-90 transition"
+                className="w-full bg-gradient-to-r from-[#0e6994] to-[#7035fd] text-white py-3 rounded-lg font-semibold shadow-lg hover:opacity-90 transition"
               >
                 Choose Plan
               </motion.button>
@@ -77,7 +98,7 @@ export default function Pricing() {
         <div className="mt-16">
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-10 rounded-2xl font-semibold shadow-2xl cursor-pointer"
+            className="inline-block bg-gradient-to-r from-[#0e6994] to-[#7035fd] text-white py-4 px-10 rounded-2xl font-semibold shadow-lg cursor-pointer hover:opacity-90 transition"
             onClick={() => navigate("/signup")}
           >
             Start Your Free Trial Today
