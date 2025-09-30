@@ -40,6 +40,8 @@ app.get("/", (req, res) => {
 async function ensureSchema() {
   try {
     await sql`ALTER TABLE questions ADD COLUMN IF NOT EXISTS image_url TEXT`;
+    // Enforce one attempt per user per test (except cancelled)
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_user_test_once ON user_test_results (user_id, test_id) WHERE status <> 'cancelled'`;
   } catch (err) {
     console.error("Schema ensure failed:", err);
   }

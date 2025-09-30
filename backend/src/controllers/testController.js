@@ -1,20 +1,73 @@
-// src/controllers/testController.js
+// src/controllers/testController.js 
 import sql from "../config/neonsetup.js";
+import { Readable } from "stream";
+
+// In-memory SSE client registry per user
+const userIdToSseClients = new Map();
+
+function addSseClient(userId, res) {
+  const existing = userIdToSseClients.get(userId) || new Set();
+  existing.add(res);
+  userIdToSseClients.set(userId, existing);
+}
+
+function removeSseClient(userId, res) {
+  const set = userIdToSseClients.get(userId);
+  if (!set) return;
+  set.delete(res);
+  if (set.size === 0) {
+    userIdToSseClients.delete(userId);
+  }
+}
+
+function broadcastAnalyticsToUser(userId, analytics) {
+  const clients = userIdToSseClients.get(userId);
+  if (!clients || clients.size === 0) return;
+  const payload = `data: ${JSON.stringify({ type: "analytics:update", analytics })}\n\n`;
+  for (const res of clients) {
+    try {
+      res.write(payload);
+    } catch (_) {
+      // ignore broken pipe
+    }
+  }
+}
 
 // Get all available tests
 export const getAvailableTests = async (req, res) => {
   try {
-    const tests = await sql`
-      SELECT 
-        t.*,
-        array_agg(tt.tag_name) as tags
-      FROM tests t
-      LEFT JOIN test_tags tt ON t.id = tt.test_id
-      WHERE t.is_active = true
-      GROUP BY t.id, t.title, t.subject, t.description, t.duration_minutes, 
-               t.total_questions, t.total_points, t.difficulty, t.created_at, t.updated_at
-      ORDER BY t.created_at DESC
-    `;
+    // Optionally exclude tests already attempted by the user (from header)
+    const headerUserId = req.header('X-User-Id');
+    const parsedId = headerUserId ? Number(headerUserId) : NaN;
+    const userId = Number.isFinite(parsedId) && parsedId > 0 ? parsedId : null;
+
+    const tests = userId !== null
+      ? await sql`
+        SELECT 
+          t.*,
+          array_agg(tt.tag_name) as tags
+        FROM tests t
+        LEFT JOIN test_tags tt ON t.id = tt.test_id
+        WHERE t.is_active = true
+          AND NOT EXISTS (
+            SELECT 1 FROM user_test_results utr
+            WHERE utr.test_id = t.id AND utr.user_id = ${userId}
+          )
+        GROUP BY t.id, t.title, t.subject, t.description, t.duration_minutes, 
+                 t.total_questions, t.total_points, t.difficulty, t.created_at, t.updated_at
+        ORDER BY t.created_at DESC
+      `
+      : await sql`
+        SELECT 
+          t.*,
+          array_agg(tt.tag_name) as tags
+        FROM tests t
+        LEFT JOIN test_tags tt ON t.id = tt.test_id
+        WHERE t.is_active = true
+        GROUP BY t.id, t.title, t.subject, t.description, t.duration_minutes, 
+                 t.total_questions, t.total_points, t.difficulty, t.created_at, t.updated_at
+        ORDER BY t.created_at DESC
+      `;
 
     const formattedTests = tests.map(test => ({
       id: test.id,
@@ -380,6 +433,8 @@ export const getUserCompletedTests = async (req, res) => {
       subject: test.subject,
       score: test.score,
       maxScore: test.max_score,
+      percentage: Math.round((test.percentage ?? (test.max_score ? (test.score / test.max_score) * 100 : 0))),
+      timeTaken: test.time_taken_minutes,
       completedAt: test.completed_at.toISOString().split('T')[0],
       duration: `${test.duration_minutes} minutes`,
       status: "completed"
@@ -478,18 +533,20 @@ export const startTest = async (req, res) => {
       return res.status(404).json({ error: "Test not found" });
     }
 
-    // Check if user already has an incomplete attempt
-    const existingAttempt = await sql`
+    // Enforce one attempt per user per test
+    const existing = await sql`
       SELECT * FROM user_test_results 
-      WHERE user_id = ${userId} AND test_id = ${testId} AND status = 'in_progress'
+      WHERE user_id = ${userId} AND test_id = ${testId}
+      ORDER BY id DESC
+      LIMIT 1
     `;
 
-    if (existingAttempt.length > 0) {
-      return res.json({ 
-        message: "Resume existing test", 
-        attemptId: existingAttempt[0].id,
-        test: test[0]
-      });
+    if (existing.length > 0) {
+      if (existing[0].status === 'in_progress') {
+        return res.json({ message: "Resume existing test", attemptId: existing[0].id, test: test[0] });
+      }
+      // Completed or any other status -> do not allow retake
+      return res.status(400).json({ error: "You have already attempted this test." });
     }
 
     // Create new test attempt
@@ -569,6 +626,10 @@ export const submitTestResults = async (req, res) => {
       VALUES (${userId}, 'test_completed', ${'Completed test: ' + attempt[0].title + ' with ' + percentage + '% score'})
     `;
 
+    // Compute latest analytics for this user and broadcast to SSE clients
+    const latest = await computeUserAnalytics(userId);
+    broadcastAnalyticsToUser(userId, latest);
+
     res.json({ 
       message: "Test submitted successfully", 
       score, 
@@ -642,3 +703,114 @@ function getActivityType(type) {
     default: return 'info';
   }
 }
+
+// Compute Analytics for Analytics.jsx (DB-backed)
+async function computeUserAnalytics(userId) {
+  // Total tests, average score, total time, improvement, best subject, recent scores, subject breakdown, monthly progress
+  const summary = await sql`
+    SELECT
+      COUNT(*)::int AS total_tests,
+      COALESCE(ROUND(AVG(percentage))::int, 0) AS average_score,
+      COALESCE(SUM(time_taken_minutes)::int, 0) AS total_time
+    FROM user_test_results
+    WHERE user_id = ${userId} AND status = 'completed'
+  `;
+
+  const bestSubjectRows = await sql`
+    SELECT t.subject,
+           ROUND(AVG(utr.percentage))::int AS avg_score,
+           COUNT(*)::int AS tests
+    FROM user_test_results utr
+    JOIN tests t ON t.id = utr.test_id
+    WHERE utr.user_id = ${userId} AND utr.status = 'completed'
+    GROUP BY t.subject
+    ORDER BY avg_score DESC, tests DESC
+    LIMIT 1
+  `;
+
+  const recent = await sql`
+    SELECT percentage
+    FROM user_test_results
+    WHERE user_id = ${userId} AND status = 'completed'
+    ORDER BY completed_at DESC NULLS LAST, id DESC
+    LIMIT 8
+  `;
+
+  const subjects = await sql`
+    SELECT t.subject,
+           ROUND(AVG(utr.percentage))::int AS score,
+           COUNT(*)::int AS tests
+    FROM user_test_results utr
+    JOIN tests t ON t.id = utr.test_id
+    WHERE utr.user_id = ${userId} AND utr.status = 'completed'
+    GROUP BY t.subject
+    ORDER BY t.subject ASC
+  `;
+
+  const monthly = await sql`
+    SELECT TO_CHAR(date_trunc('month', completed_at), 'Mon') AS month,
+           COUNT(*)::int AS tests,
+           COALESCE(ROUND(AVG(percentage))::int, 0) AS avg_score
+    FROM user_test_results
+    WHERE user_id = ${userId} AND status = 'completed'
+    GROUP BY date_trunc('month', completed_at)
+    ORDER BY date_trunc('month', completed_at) ASC
+    LIMIT 6
+  `;
+
+  // Improvement: difference between last score and average of previous ones
+  let improvement = 0;
+  if (recent.length >= 2) {
+    const last = recent[0].percentage || 0;
+    const prev = recent.slice(1).map(r => r.percentage || 0);
+    const prevAvg = prev.length > 0 ? Math.round(prev.reduce((a, b) => a + b, 0) / prev.length) : 0;
+    improvement = last - prevAvg;
+  }
+
+  return {
+    totalTests: summary[0]?.total_tests || 0,
+    averageScore: summary[0]?.average_score || 0,
+    totalTimeSpent: summary[0]?.total_time || 0,
+    bestSubject: bestSubjectRows[0]?.subject || 'N/A',
+    improvement,
+    recentScores: recent.map(r => r.percentage || 0).reverse(),
+    subjectBreakdown: subjects.map(r => ({ subject: r.subject, score: r.score, tests: r.tests })),
+    monthlyProgress: monthly.map(r => ({ month: r.month, tests: r.tests, avgScore: r.avg_score }))
+  };
+}
+
+// REST endpoint to fetch analytics snapshot
+export const getUserAnalytics = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const analytics = await computeUserAnalytics(userId);
+    res.json({ analytics });
+  } catch (err) {
+    console.error('Error computing analytics:', err);
+    res.status(500).json({ error: 'Failed to load analytics' });
+  }
+};
+
+// SSE endpoint for real-time analytics updates
+export const analyticsStream = async (req, res) => {
+  const userId = req.user.id;
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  // Send initial snapshot
+  try {
+    const analytics = await computeUserAnalytics(userId);
+    res.write(`data: ${JSON.stringify({ type: 'analytics:init', analytics })}\n\n`);
+  } catch (_) {
+    // ignore
+  }
+
+  addSseClient(userId, res);
+
+  req.on('close', () => {
+    removeSseClient(userId, res);
+    try { res.end(); } catch (_) {}
+  });
+};

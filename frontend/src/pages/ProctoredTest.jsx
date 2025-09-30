@@ -33,6 +33,8 @@ export default function ProctoredTest() {
   const [showWarning, setShowWarning] = useState(true);
   const [attemptId, setAttemptId] = useState(null);
   const [timerActive, setTimerActive] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [fullscreenReady, setFullscreenReady] = useState(false);
   const violationCountRef = useRef(0);
   const violationHandledRef = useRef(false);
   const submittedRef = useRef(false);
@@ -40,7 +42,9 @@ export default function ProctoredTest() {
   const faceCheckIntervalRef = useRef(null);
   const faceDetectorRef = useRef(null);
   const lastFaceWarnRef = useRef(0);
-  const fullscreenIntervalRef = useRef(null);
+  const fullscreenIntervalRef = useRef(null);  // Multi-face detection enforcement
+  const multiFaceViolationCountRef = useRef(0);
+  const multiFaceActiveRef = useRef(false);
 
   const enterFullscreen = async () => {
     try {
@@ -177,7 +181,8 @@ export default function ProctoredTest() {
       } else {
         setTimeLeft(testData.duration * 60); // Convert to seconds
       }
-      setTimerActive(true);
+      // Do not start timer yet; wait until user grants camera and fullscreen
+      setTimerActive(false);
     } catch (error) {
       console.error("Error loading test:", error);
       alert("Failed to load test");
@@ -243,6 +248,7 @@ export default function ProctoredTest() {
         setCameraError(false);
         // Start face monitoring if supported
         startFaceMonitoring();
+        setCameraReady(true);
       }
     } catch (error) {
       console.error("Error accessing camera:", error);
@@ -304,10 +310,24 @@ export default function ProctoredTest() {
           if (!videoRef.current || !cameraActive || !faceDetectorRef.current) return;
           const faces = await faceDetectorRef.current.detect(videoRef.current);
           if (faces && faces.length > 1) {
-            const now = Date.now();
-            if (now - lastFaceWarnRef.current > 30000) { // 30s cooldown
-              lastFaceWarnRef.current = now;
-              showSecurityAlert('Multiple faces detected. Only the test taker should be visible.');
+            // Trigger on transition into multi-face state
+            if (!multiFaceActiveRef.current) {
+              multiFaceActiveRef.current = true;
+              multiFaceViolationCountRef.current += 1;
+              const count = multiFaceViolationCountRef.current;
+              if (count < 3) {
+                const remaining = 3 - count;
+                lastFaceWarnRef.current = Date.now();
+                showSecurityAlert(`Multiple faces detected. This is warning ${count}/3. ${remaining} more and the test will be auto-submitted.`);
+              } else if (count >= 3 && !submittedRef.current) {
+                showSecurityAlert('Multiple faces detected 3 times. Submitting your test now.');
+                handleSubmit();
+              }
+            }
+          } else {
+            // Reset state when back to single/no face so future infractions are counted once per event
+            if (multiFaceActiveRef.current) {
+              multiFaceActiveRef.current = false;
             }
           }
         } catch (e) {
@@ -466,16 +486,26 @@ export default function ProctoredTest() {
                 >
                   Cancel
                 </button>
+              </div>
+              <div className="grid grid-cols-1 gap-3 mt-4">
                 <button
-                  onClick={async () => {
-                    setShowWarning(false);
-                    await startCamera();
-                    await enterFullscreen();
-                    startFullscreenEnforcement();
-                  }}
-                  className="flex-1 bg-[#0e6994] text-white py-3 rounded-lg hover:bg-[#0c2543] transition"
+                  onClick={async () => { await startCamera(); }}
+                  className={`py-3 rounded-lg transition ${cameraReady ? "bg-[#6c9d87] text-white" : "bg-[#0e6994] text-white hover:bg-[#0c2543]"}`}
                 >
-                  Start Test
+                  {cameraReady ? "Camera Enabled" : "Enable Camera"}
+                </button>
+                <button
+                  onClick={async () => { await enterFullscreen(); startFullscreenEnforcement(); setFullscreenReady(true); }}
+                  className={`py-3 rounded-lg transition ${fullscreenReady ? "bg-[#6c9d87] text-white" : "bg-[#0e6994] text-white hover:bg-[#0c2543]"}`}
+                >
+                  {fullscreenReady ? "Fullscreen Enabled" : "Enter Fullscreen"}
+                </button>
+                <button
+                  onClick={() => { setShowWarning(false); setTimerActive(true); }}
+                  disabled={!cameraReady || !fullscreenReady}
+                  className={`py-3 rounded-lg transition ${(!cameraReady || !fullscreenReady) ? "bg-[#b0cece] text-[#0c2543] cursor-not-allowed" : "bg-[#7035fd] text-white hover:bg-[#0c2543]"}`}
+                >
+                  Begin Test
                 </button>
               </div>
             </div>

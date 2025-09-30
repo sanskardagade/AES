@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { testAPI } from "../services/api";
 
 export default function Analytics() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState({
     totalTests: 0,
@@ -27,41 +27,39 @@ export default function Analytics() {
     subjectBreakdown: [],
     monthlyProgress: []
   });
+  const [modal, setModal] = useState({ open: false, tab: 'history' });
+  const [details, setDetails] = useState({ tests: [] });
 
   useEffect(() => {
-    fetchAnalytics();
+    let unsubscribe = null;
+    const init = async () => {
+      try {
+        setLoading(true);
+        const snap = await testAPI.getUserAnalytics();
+        setAnalytics(snap);
+        // Preload details for modals
+        const done = await testAPI.getCompletedTests();
+        setDetails({ tests: done });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+      try {
+        unsubscribe = testAPI.subscribeAnalytics((live) => {
+          setAnalytics((prev) => ({ ...prev, ...live }));
+        });
+      } catch (e) {
+        // ignore SSE failure; page will still show snapshot
+      }
+    };
+    init();
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      // Mock analytics data
-      const mockAnalytics = {
-        totalTests: 12,
-        averageScore: 87,
-        totalTimeSpent: 480, // minutes
-        bestSubject: "Mathematics",
-        improvement: 15,
-        recentScores: [85, 92, 78, 88, 95, 82, 90, 87],
-        subjectBreakdown: [
-          { subject: "Mathematics", score: 89, tests: 4 },
-          { subject: "Computer Science", score: 85, tests: 3 },
-          { subject: "Physics", score: 82, tests: 3 },
-          { subject: "Chemistry", score: 88, tests: 2 }
-        ],
-        monthlyProgress: [
-          { month: "Jan", tests: 3, avgScore: 82 },
-          { month: "Feb", tests: 4, avgScore: 85 },
-          { month: "Mar", tests: 5, avgScore: 87 }
-        ]
-      };
-      setAnalytics(mockAnalytics);
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // removed mock fetchAnalytics; now uses API + SSE
 
   if (loading) {
     return (
@@ -100,7 +98,8 @@ export default function Analytics() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece] cursor-pointer"
+            onClick={() => setModal({ open: true, tab: 'history' })}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -115,7 +114,8 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece] cursor-pointer"
+            onClick={() => setModal({ open: true, tab: 'scores' })}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -130,7 +130,8 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece] cursor-pointer"
+            onClick={() => setModal({ open: true, tab: 'time' })}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -145,7 +146,8 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece] cursor-pointer"
+            onClick={() => setModal({ open: true, tab: 'subject' })}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -163,7 +165,8 @@ export default function Analytics() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece]"
+            className="bg-[#ffffff] rounded-xl p-6 shadow border border-[#b0cece] cursor-pointer"
+            onClick={() => setModal({ open: true, tab: 'chart' })}
           >
             <h3 className="text-xl font-bold text-[#0c2543] mb-6 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#0e6994]" />
@@ -235,6 +238,83 @@ export default function Analytics() {
           </motion.div>
         </div>
       </div>
+
+      {modal.open && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex gap-3 text-sm">
+                <button className={`px-3 py-1 rounded ${modal.tab==='history'?'bg-[#0e6994] text-white':'bg-gray-100'}`} onClick={() => setModal(m => ({...m, tab:'history'}))}>History</button>
+                <button className={`px-3 py-1 rounded ${modal.tab==='scores'?'bg-[#0e6994] text-white':'bg-gray-100'}`} onClick={() => setModal(m => ({...m, tab:'scores'}))}>Scores</button>
+                <button className={`px-3 py-1 rounded ${modal.tab==='time'?'bg-[#0e6994] text-white':'bg-gray-100'}`} onClick={() => setModal(m => ({...m, tab:'time'}))}>Time</button>
+                <button className={`px-3 py-1 rounded ${modal.tab==='chart'?'bg-[#0e6994] text-white':'bg-gray-100'}`} onClick={() => setModal(m => ({...m, tab:'chart'}))}>Chart</button>
+              </div>
+              <button className="text-gray-600 hover:text-black" onClick={() => setModal({ open:false, tab:'history' })}>✕</button>
+            </div>
+
+            <div className="p-4 max-h-[70vh] overflow-auto">
+              {modal.tab === 'history' && (
+                <div className="space-y-3">
+                  {details.tests.length === 0 && (<div className="text-gray-500 text-sm">No tests yet</div>)}
+                  {details.tests.map(t => (
+                    <div key={t.id} className="flex items-center justify-between border rounded-lg p-3">
+                      <div>
+                        <div className="font-semibold text-[#0c2543]">{t.title}</div>
+                        <div className="text-xs text-gray-500">{t.subject} • {t.completedAt}</div>
+                      </div>
+                      <div className="text-right text-sm">
+                        <div className="text-[#0c2543] font-semibold">{t.percentage}%</div>
+                        <div className="text-gray-500">{t.score}/{t.maxScore} • {t.timeTaken}m</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {modal.tab === 'scores' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {details.tests.map(t => (
+                    <div key={t.id} className="border rounded-lg p-3">
+                      <div className="font-semibold text-[#0c2543] mb-1">{t.title}</div>
+                      <div className="text-[#6c9d87] text-2xl font-bold">{t.percentage}%</div>
+                      <div className="text-sm text-gray-500">{t.score}/{t.maxScore}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {modal.tab === 'time' && (
+                <div className="space-y-3">
+                  <div className="text-sm text-gray-600">Total time across tests: <span className="font-semibold text-[#e1ab30]">{analytics.totalTimeSpent} minutes</span></div>
+                  {details.tests.map(t => (
+                    <div key={t.id} className="flex items-center justify-between border rounded-lg p-3">
+                      <div className="font-medium text-[#0c2543]">{t.title}</div>
+                      <div className="text-[#e1ab30] font-semibold">{t.timeTaken}m</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {modal.tab === 'chart' && (
+                <div>
+                  <div className="text-[#0c2543] font-semibold mb-4">Recent Performance (expanded)</div>
+                  <div className="h-80 flex items-end gap-2">
+                    {analytics.recentScores.map((score, index) => (
+                      <div key={index} className="flex-1 flex flex-col items-center">
+                        <div
+                          className="rounded-t w-full transition-all duration-500"
+                          style={{ height: `${(score / 100) * 280}px`, background: "linear-gradient(to top, #0e6994, #7035fd)" }}
+                        ></div>
+                        <span className="text-gray-600 text-xs mt-2">{score}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,17 +14,23 @@ import { placementAPI } from "../services/api";
 export default function PlacementOfficer() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const pollingRef = useRef(null);
+  const sseCleanupRef = useRef(null);
   const initialLoadRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSubject, setFilterSubject] = useState("all");
   const [sortBy, setSortBy] = useState("score");
+  const [details, setDetails] = useState({ open: false, student: null });
 
   useEffect(() => {
     loadStudentData();
-    pollingRef.current = setInterval(loadStudentData, 5000);
+    // subscribe to SSE
+    try {
+      sseCleanupRef.current = placementAPI.subscribe((fresh) => {
+        setStudents(Array.isArray(fresh) ? fresh : []);
+      });
+    } catch (_) {}
     return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
+      if (typeof sseCleanupRef.current === 'function') sseCleanupRef.current();
     };
   }, []);
 
@@ -32,7 +38,7 @@ export default function PlacementOfficer() {
     try {
       if (initialLoadRef.current) setLoading(true);
       const fresh = await placementAPI.getStudents();
-      setStudents(Array.isArray(fresh) ? fresh : (fresh.students || []));
+      setStudents(Array.isArray(fresh) ? fresh : (fresh.students || fresh || []));
     } catch (error) {
       console.error("Error loading student data:", error);
     } finally {
@@ -43,12 +49,55 @@ export default function PlacementOfficer() {
     }
   };
 
+  const openDetails = async (userId) => {
+    try {
+      const student = await placementAPI.getStudentDetails(userId);
+      setDetails({ open: true, student });
+    } catch (e) {
+      console.error('Failed to load details:', e);
+    }
+  };
+
+  const exportReport = (student) => {
+    try {
+      const headers = ['Date','Test','Score (%)','Marks','Time (m)'];
+      const rows = (student.tests || []).map(t => [
+        new Date(t.date).toLocaleDateString(),
+        t.title,
+        t.percentage,
+        `${t.score}/${t.maxScore}`,
+        t.time
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'\"')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${student.name.replace(/\s+/g,'_')}_report.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Export failed:', e);
+    }
+  };
+
+  const recommend = async (userId) => {
+    try {
+      await placementAPI.recommend(userId, 'Recommended by Placement Officer');
+      // optimistic UI: no-op, SSE will refresh
+      alert('Student recommended');
+    } catch (e) {
+      console.error('Recommend failed:', e);
+      alert('Failed to recommend');
+    }
+  };
+
   const filteredStudents = students.filter(student => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter =
-      filterSubject === "all" || student.department === filterSubject;
+      filterSubject === "all" || (student.department || '').toLowerCase() === filterSubject.toLowerCase();
     return matchesSearch && matchesFilter;
   });
 
@@ -285,15 +334,15 @@ export default function PlacementOfficer() {
 
               {/* Actions */}
               <div className="flex gap-3">
-                <button className="bg-gradient-to-r from-[#6c9d87] to-[#7035fd] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
+                <button onClick={() => openDetails(student.id)} className="bg-gradient-to-r from-[#6c9d87] to-[#7035fd] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
                   <Eye className="w-4 h-4" />
                   View Details
                 </button>
-                <button className="bg-[#6c5043] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
+                <button onClick={() => details.student ? exportReport(details.student) : openDetails(student.id)} className="bg-[#6c5043] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   Export Report
                 </button>
-                <button className="bg-gradient-to-r from-[#e1ab30] to-[#d44719] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
+                <button onClick={() => recommend(student.id)} className="bg-gradient-to-r from-[#e1ab30] to-[#d44719] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
                   <Award className="w-4 h-4" />
                   Recommend
                 </button>
@@ -312,6 +361,45 @@ export default function PlacementOfficer() {
           </div>
         )}
       </div>
+
+      {details.open && details.student && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-[#0c2543] text-white rounded-xl shadow-xl w-full max-w-3xl mx-4 border border-[#6c9d87]/40">
+            <div className="flex items-center justify-between p-4 border-b border-[#6c9d87]/30">
+              <div>
+                <div className="text-lg font-bold">{details.student.name}</div>
+                <div className="text-sm text-[#b0cece]">{details.student.email}</div>
+              </div>
+              <button onClick={() => setDetails({ open:false, student:null })} className="text-[#b0cece] hover:text-white">✕</button>
+            </div>
+            <div className="p-4 max-h-[70vh] overflow-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(details.student.tests || []).map((t, idx) => (
+                  <div key={idx} className="bg-[#0e6994]/30 rounded-lg p-3 border border-[#b0cece]/20">
+                    <div className="font-semibold">{t.title}</div>
+                    <div className="text-sm text-[#b0cece]">{new Date(t.date).toLocaleString()}</div>
+                    <div className="mt-2 flex justify-between text-sm">
+                      <div>Score: <span className="font-semibold">{t.percentage}%</span></div>
+                      <div>Marks: <span className="font-semibold">{t.score}/{t.maxScore}</span></div>
+                      <div>Time: <span className="font-semibold">{t.time}m</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex gap-3">
+                <button onClick={() => exportReport(details.student)} className="bg-[#6c5043] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+                <button onClick={() => recommend(details.student.id)} className="bg-gradient-to-r from-[#e1ab30] to-[#d44719] text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
+                  <Award className="w-4 h-4" />
+                  Recommend
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

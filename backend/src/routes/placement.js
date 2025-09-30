@@ -1,5 +1,5 @@
 import express from "express";
-import { getPlacementStudents } from "../controllers/placementController.js";
+import { getPlacementStudents, getPlacementStudentDetails, recommendStudent, placementStream } from "../controllers/placementController.js";
 
 const router = express.Router();
 
@@ -12,7 +12,10 @@ router.use((req, res, next) => {
   next();
 });
 router.get("/students", getPlacementStudents);
+router.get("/students/:userId", getPlacementStudentDetails);
+router.post("/students/:userId/recommend", recommendStudent);
+router.get("/stream", placementStream);
 
 export default router;
-
+ 
 

@@ -131,6 +131,40 @@ export const testAPI = {
       console.error('Error fetching statistics:', error);
       throw error;
     }
+  },  
+
+  // Get user analytics snapshot
+  getUserAnalytics: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tests/analytics`, { headers: { ...userHeaders() } });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch analytics');
+      }
+      return data.analytics;
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      throw error;
+    }
+  },
+
+  // Subscribe to analytics SSE stream
+  subscribeAnalytics: (onData) => {
+    const headers = userHeaders();
+    const query = headers['X-User-Id'] ? `?uid=${encodeURIComponent(headers['X-User-Id'])}` : '';
+    const source = new EventSource(`${API_BASE_URL.replace('http', 'http')}/tests/analytics/stream${query}`);
+    source.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload && (payload.type === 'analytics:init' || payload.type === 'analytics:update')) {
+          onData(payload.analytics);
+        }
+      } catch (_) {}
+    };
+    source.onerror = () => {
+      // Let caller decide to retry
+    };
+    return () => source.close();
   },
 
   // Start a test
@@ -219,6 +253,38 @@ export const placementAPI = {
       console.error('Error fetching students:', error);
       throw error;
     }
+  }, 
+  // Stream real-time placement updates via SSE
+  subscribe: (onData) => {
+    const headers = userHeaders();
+    const query = headers['X-User-Id'] ? `?uid=${encodeURIComponent(headers['X-User-Id'])}` : '';
+    const source = new EventSource(`${API_BASE_URL}/placement/stream${query}`);
+    source.onmessage = async (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload && payload.type === 'placement:update') {
+          onData(payload.data.students || []);
+        }
+      } catch (_) {}
+    };
+    source.onerror = () => {};
+    return () => source.close();
+  },
+  getStudentDetails: async (userId) => {
+    const res = await fetch(`${API_BASE_URL}/placement/students/${userId}`, { headers: { ...userHeaders() } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to load details');
+    return data.student;
+  },
+  recommend: async (userId, note) => {
+    const res = await fetch(`${API_BASE_URL}/placement/students/${userId}/recommend`, {
+      method: 'POST',
+      headers: { ...userHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to recommend student');
+    return data;
   },
 };
 

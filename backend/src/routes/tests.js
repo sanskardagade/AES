@@ -5,11 +5,13 @@ import {
   getUserCompletedTests, 
   getUserStatistics, 
   startTest, 
-  submitTestResults 
+  submitTestResults,
+  getUserAnalytics,
+  analyticsStream,
 } from "../controllers/testController.js";
 
 const router = express.Router();
-
+ 
 // Public routes (no authentication required for viewing tests)
 router.get("/available", getAvailableTests);
 router.get("/:testId/questions", getTestWithQuestions);
@@ -27,6 +29,8 @@ router.use((req, res, next) => {
 
 router.get("/completed", getUserCompletedTests);
 router.get("/statistics", getUserStatistics);
+router.get("/analytics", getUserAnalytics);
+router.get("/analytics/stream", analyticsStream);
 router.post("/start/:testId", startTest);
 router.post("/submit", submitTestResults);
 

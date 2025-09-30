@@ -38,8 +38,8 @@ export default function Home() {
     // Animate stats counter
     const timer = setInterval(() => {
       setStats((prev) => ({
-        users: Math.min(prev.users + 127, 50000),
-        tests: Math.min(prev.tests + 89, 25000),
+        users: Math.min(prev.users + 127, 25000),
+        tests: Math.min(prev.tests + 89, 50000),
         success: Math.min(prev.success + 2, 98),
       }));
     }, 50);
