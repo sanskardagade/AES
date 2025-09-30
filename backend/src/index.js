@@ -3,6 +3,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import sql from "./config/neonsetup.js";
 
 // Import Routes
 import authRoutes from "./routes/auth.js";
@@ -36,6 +37,15 @@ app.get("/", (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+async function ensureSchema() {
+  try {
+    await sql`ALTER TABLE questions ADD COLUMN IF NOT EXISTS image_url TEXT`;
+  } catch (err) {
+    console.error("Schema ensure failed:", err);
+  }
+}
+
+app.listen(PORT, async () => {
+  await ensureSchema();
   console.log(`Server running on http://localhost:${PORT}`);
 });

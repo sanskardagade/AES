@@ -76,7 +76,7 @@ export const listQuestions = async (req, res) => {
   try {
     const { testId } = req.params;
     const questions = await sql`
-      SELECT id, test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points
+      SELECT id, test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points, image_url
       FROM questions
       WHERE test_id = ${testId}
       ORDER BY id ASC
@@ -91,14 +91,14 @@ export const listQuestions = async (req, res) => {
 export const createQuestion = async (req, res) => {
   try {
     const { testId } = req.params;
-    const { question_text, option_a, option_b, option_c, option_d, correct_answer, points } = req.body;
+    const { question_text, option_a, option_b, option_c, option_d, correct_answer, points, image_url } = req.body;
     if (!question_text || !option_a || !option_b || !option_c || !option_d || !correct_answer) {
       return res.status(400).json({ error: "Missing required fields" });
     }
     const rows = await sql`
-      INSERT INTO questions (test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points)
-      VALUES (${testId}, ${question_text}, ${option_a}, ${option_b}, ${option_c}, ${option_d}, ${correct_answer}, ${points || 1})
-      RETURNING id, test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points
+      INSERT INTO questions (test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points, image_url)
+      VALUES (${testId}, ${question_text}, ${option_a}, ${option_b}, ${option_c}, ${option_d}, ${correct_answer}, ${points || 1}, ${image_url || null})
+      RETURNING id, test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points, image_url
     `;
     // Update total_questions if provided or increment based on count
     await sql`UPDATE tests SET total_questions = (SELECT COUNT(*) FROM questions WHERE test_id = ${testId}) WHERE id = ${testId}`;
@@ -137,6 +137,7 @@ export const downloadQuestionsTemplate = async (_req, res) => {
         "Option D",
         "Correct Answer (A-D)",
         "Points (optional)",
+        "Image URL (optional)",
       ],
       [
         "What is 2 + 2?",
@@ -146,6 +147,7 @@ export const downloadQuestionsTemplate = async (_req, res) => {
         "6",
         "B",
         1,
+        "https://example.com/sample.png",
       ],
     ];
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
@@ -176,13 +178,29 @@ export const bulkUploadQuestions = async (req, res) => {
 
     const toInsert = [];
     for (const row of json) {
-      const question_text = row["Question Text"] || row["question"] || row["Question"];
-      const option_a = row["Option A"] || row["A"] || row["Option a"]; 
-      const option_b = row["Option B"] || row["B"] || row["Option b"]; 
-      const option_c = row["Option C"] || row["C"] || row["Option c"]; 
-      const option_d = row["Option D"] || row["D"] || row["Option d"]; 
-      const correct_answer_raw = row["Correct Answer (A-D)"] || row["Correct"] || row["Answer"] || row["Correct Answer"];
-      const points = Number(row["Points (optional)"] || row["Points"] || 1);
+      // Normalize headers to be resilient to casing/spaces/typos
+      const normalized = {};
+      Object.keys(row).forEach((k) => {
+        const key = String(k).toLowerCase().replace(/\s+/g, " ").trim();
+        normalized[key] = row[k];
+      });
+
+      const get = (...keys) => {
+        for (const key of keys) {
+          const nk = String(key).toLowerCase().replace(/\s+/g, " ").trim();
+          if (normalized[nk] !== undefined && normalized[nk] !== null) return normalized[nk];
+        }
+        return "";
+      };
+
+      const question_text = get("question text", "question", "question_text");
+      const option_a = get("option a", "a", "option a.");
+      const option_b = get("option b", "b");
+      const option_c = get("option c", "c");
+      const option_d = get("option d", "d");
+      const correct_answer_raw = get("correct answer (a-d)", "correct answer", "answer", "correct");
+      const points = Number(get("points (optional)", "points")) || 1;
+      const image_url = get("image url (optional)", "image url", "image");
 
       const correct_answer = String(correct_answer_raw || "").toUpperCase().trim();
 
@@ -190,7 +208,7 @@ export const bulkUploadQuestions = async (req, res) => {
         // skip invalid rows silently
         continue;
       }
-      toInsert.push({ question_text, option_a, option_b, option_c, option_d, correct_answer, points: Number.isFinite(points) ? points : 1 });
+      toInsert.push({ question_text, option_a, option_b, option_c, option_d, correct_answer, points: Number.isFinite(points) ? points : 1, image_url: String(image_url).trim() || null });
     }
 
     if (toInsert.length === 0) {
@@ -199,8 +217,8 @@ export const bulkUploadQuestions = async (req, res) => {
 
     for (const q of toInsert) {
       await sql`
-        INSERT INTO questions (test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points)
-        VALUES (${testId}, ${q.question_text}, ${q.option_a}, ${q.option_b}, ${q.option_c}, ${q.option_d}, ${q.correct_answer}, ${q.points})
+        INSERT INTO questions (test_id, question_text, option_a, option_b, option_c, option_d, correct_answer, points, image_url)
+        VALUES (${testId}, ${q.question_text}, ${q.option_a}, ${q.option_b}, ${q.option_c}, ${q.option_d}, ${q.correct_answer}, ${q.points}, ${q.image_url})
       `;
     }
 

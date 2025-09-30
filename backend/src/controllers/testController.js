@@ -157,7 +157,8 @@ export const getTestWithQuestions = async (req, res) => {
       question: q.question_text,
       options: [q.option_a, q.option_b, q.option_c, q.option_d],
       correct: q.correct_answer.charCodeAt(0) - 65, // Convert A,B,C,D to 0,1,2,3
-      points: q.points
+      points: q.points,
+      imageUrl: q.image_url || null
     }));
 
     const formattedTest = {
