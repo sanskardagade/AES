@@ -259,6 +259,17 @@ export default function TestInterface() {
                 <h2 className="text-2xl font-bold text-[#0c2543] mb-6">
                   {currentQ.question}
                 </h2>
+                {currentQ.imageUrl && (
+                  <div className="mb-6">
+                    <img
+                      src={currentQ.imageUrl}
+                      alt="Question"
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      className="max-h-64 max-w-full rounded-lg border border-[#b0cece] object-contain"
+                    />
+                  </div>
+                )}
                 
                 <div className="space-y-4">
                   {currentQ.options.map((option, index) => (
