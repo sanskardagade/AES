@@ -25,6 +25,7 @@ export default function AdminPanel() {
     total_points: 100,
     difficulty: "Intermediate",
   })
+  const [questionsFile, setQuestionsFile] = useState(null)
   const [editForm, setEditForm] = useState({
     title: "",
     subject: "",
@@ -89,6 +90,14 @@ export default function AdminPanel() {
   const handleAddTest = async () => {
     try {
       const created = await adminAPI.createTest(testForm)
+      // if an Excel file is selected, upload questions in bulk
+      if (questionsFile) {
+        try {
+          await adminAPI.uploadQuestionsExcel(created.id, questionsFile)
+        } catch (e) {
+          console.error('Bulk upload failed:', e)
+        }
+      }
       const next = [created, ...tests]
       setTests(next)
       setSelectedTest(created)
@@ -104,6 +113,7 @@ export default function AdminPanel() {
         total_points: 100,
         difficulty: "Intermediate",
       })
+      setQuestionsFile(null)
     } catch (error) {
       console.error("Error adding test:", error)
     }
@@ -176,9 +186,9 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#ffffff" }}>
+      <div className="min-h-screen" style={{ backgroundColor: "#ffffff" }}>
       {/* Header */}
-      <div style={{ backgroundColor: "#6c5043" }} className="border-b" style={{ borderColor: "#b0cece" }}>
+      <div className="border-b" style={{ backgroundColor: "#6c5043", borderColor: "#b0cece" }}>
         <div className="max-w-7xl mx-auto px-6 py-4">
           <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "#b0cece" }}>
             <Settings className="w-6 h-6" />
@@ -597,6 +607,45 @@ export default function AdminPanel() {
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
                 </select>
+              </div>
+
+              <div className="pt-2 border-t" style={{ borderColor: "#6c9d87" }}>
+                <label className="block text-sm mb-2" style={{ color: "#0c2543" }}>
+                  Bulk Questions (Excel)
+                </label>
+                <div className="flex items-center gap-3 mb-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const blob = await adminAPI.downloadQuestionsTemplate()
+                        const url = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = 'questions_template.xlsx'
+                        document.body.appendChild(a)
+                        a.click()
+                        a.remove()
+                        window.URL.revokeObjectURL(url)
+                      } catch (e) {
+                        console.error('Template download failed:', e)
+                      }
+                    }}
+                    className="px-3 py-2 rounded-lg hover:opacity-90 transition text-sm"
+                    style={{ backgroundColor: "#6c9d87", color: "#ffffff" }}
+                  >
+                    Download Sample Excel
+                  </button>
+                  <input
+                    type="file"
+                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    onChange={(e) => setQuestionsFile(e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+                    className="flex-1 text-sm"
+                    style={{ color: "#0c2543" }}
+                  />
+                </div>
+                <p className="text-xs" style={{ color: "#6c5043" }}>
+                  Use the sample file. Columns: Question Text, Option A-D, Correct Answer (A-D), Points.
+                </p>
               </div>
             </div>
 

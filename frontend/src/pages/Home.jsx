@@ -73,7 +73,7 @@ export default function Home() {
               AES
             </span>
             <br />
-            <span className="text-blue-zodiac">Platform</span>
+            <span className="text-b lue-zodiac">Platform</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-blue-zodiac/80 mb-8 max-w-3xl mx-auto leading-relaxed">

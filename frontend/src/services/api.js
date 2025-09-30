@@ -284,6 +284,27 @@ export const adminAPI = {
     if (!res.ok) throw new Error(data.error || 'Failed to delete question');
     return data;
   },
+  downloadQuestionsTemplate: async () => {
+    const res = await fetch(`${API_BASE_URL}/admin/questions/template`, { headers: { ...userHeaders() } });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to download template');
+    }
+    const blob = await res.blob();
+    return blob;
+  },
+  uploadQuestionsExcel: async (testId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE_URL}/admin/tests/${testId}/questions/upload`, {
+      method: 'POST',
+      headers: { ...userHeaders() },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to upload questions');
+    return data;
+  },
 };
 
 // Profile API
